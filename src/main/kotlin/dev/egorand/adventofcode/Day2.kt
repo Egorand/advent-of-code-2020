@@ -85,6 +85,8 @@ enum class PasswordPolicy {
   THE_OFFICIAL_TOBOGGAN_CORPORATE_POLICY,
 }
 
+val STANDARD_CONFIGURATION = Regex("(\\d+)-(\\d+) (\\w+)")
+
 interface PasswordValidator {
   fun isValid(password: String): Boolean
 }
@@ -94,18 +96,21 @@ data class MinMaxOccurrencesPasswordValidator(
   val minOccurrences: Int,
   val maxOccurrences: Int,
 ) : PasswordValidator {
-  constructor(configuration: String) : this(
-    configuration.last(),
-    configuration.substring(0, configuration.indexOf('-')).toInt(),
-    configuration.substring(
-      configuration.indexOf('-') + 1,
-      configuration.indexOf(' ')
-    ).toInt(),
-  )
-
   override fun isValid(password: String): Boolean {
     val characterCount = password.count { it == character }
     return characterCount in minOccurrences..maxOccurrences
+  }
+
+  companion object {
+    operator fun invoke(configuration: String): MinMaxOccurrencesPasswordValidator {
+      val (minOccurrences, maxOccurrences, character) = STANDARD_CONFIGURATION
+        .find(configuration)!!.destructured
+      return MinMaxOccurrencesPasswordValidator(
+        character.first(),
+        minOccurrences.toInt(),
+        maxOccurrences.toInt(),
+      )
+    }
   }
 }
 
@@ -114,17 +119,19 @@ data class OfficialTobogganCorporatePolicyPasswordValidator(
   val firstPosition: Int,
   val secondPosition: Int,
 ) : PasswordValidator {
-  constructor(configuration: String) : this(
-    configuration.last(),
-    configuration.substring(0, configuration.indexOf('-')).toInt(),
-    configuration.substring(
-      configuration.indexOf('-') + 1,
-      configuration.indexOf(' ')
-    ).toInt(),
-  )
-
   override fun isValid(password: String): Boolean {
-    return (password[firstPosition - 1] == character) !=
-        (password[secondPosition - 1] == character)
+    return (password[firstPosition] == character) != (password[secondPosition] == character)
+  }
+
+  companion object {
+    operator fun invoke(configuration: String): OfficialTobogganCorporatePolicyPasswordValidator {
+      val (firstPosition, secondPosition, character) = STANDARD_CONFIGURATION
+        .find(configuration)!!.destructured
+      return OfficialTobogganCorporatePolicyPasswordValidator(
+        character.first(),
+        firstPosition.toInt() - 1,
+        secondPosition.toInt() - 1,
+      )
+    }
   }
 }
