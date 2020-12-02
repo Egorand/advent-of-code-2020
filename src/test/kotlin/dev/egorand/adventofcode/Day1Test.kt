@@ -14,7 +14,7 @@ class Day1Test {
   @Test fun `Part 1 - Input`() {
     assertEquals(
       539851,
-      productOfTwoEntriesThatSumTo2020(readIntsFromFile("inputs/day1"))
+      productOfTwoEntriesThatSumTo2020(readInts("inputs/day1"))
     )
   }
 
@@ -28,7 +28,7 @@ class Day1Test {
   @Test fun `Part 2 - Input`() {
     assertEquals(
       212481360,
-      productOfThreeEntriesThatSumTo2020(readIntsFromFile("inputs/day1"))
+      productOfThreeEntriesThatSumTo2020(readInts("inputs/day1"))
     )
   }
 }
