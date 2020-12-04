@@ -189,52 +189,27 @@ interface PassportDataValidator {
 }
 
 object FieldPresenceValidator : PassportDataValidator {
-  override fun isValid(passportData: PassportData): Boolean {
-    return with(passportData) {
-      birthYear != null && issueYear != null && expirationYear != null &&
-          height != null && hairColor != null && eyeColor != null && passportId != null
-    }
+  override fun isValid(passportData: PassportData) = with(passportData) {
+    birthYear != null &&
+        issueYear != null &&
+        expirationYear != null &&
+        height != null &&
+        hairColor != null &&
+        eyeColor != null &&
+        passportId != null
   }
 }
 
 object StrictValidator : PassportDataValidator {
-  override fun isValid(passportData: PassportData): Boolean {
-    return with(passportData) {
-      birthYear.isValidBirthYear() && issueYear.isValidIssueYear() &&
-          expirationYear.isValidExpirationYear() && height.isValidHeight() &&
-          hairColor.isValidHairColor() && eyeColor.isValidEyeColor() &&
-          passportId.isValidPassportId()
-    }
+  override fun isValid(passportData: PassportData) = with(passportData) {
+    birthYear.matches("19[2-9]\\d|200[0-2]") &&
+        issueYear.matches("20(1\\d|20)") &&
+        expirationYear.matches("20(2\\d|30)") &&
+        height.matches("1([5-8]\\d|9[0-3])cm|(59|6\\d|7[0-6])in") &&
+        hairColor.matches("#([0-9|a-f]){6}") &&
+        eyeColor.matches("amb|blu|brn|gry|grn|hzl|oth") &&
+        passportId.matches("\\d{9}")
   }
 
-  private fun String?.isValidBirthYear() = isValidYear(1920..2002)
-
-  private fun String?.isValidIssueYear() = isValidYear(2010..2020)
-
-  private fun String?.isValidExpirationYear() = isValidYear(2020..2030)
-
-  private fun String?.isValidYear(range: IntRange): Boolean {
-    return this != null && length == 4 && isIntInRange(range)
-  }
-
-  private fun String?.isIntInRange(range: IntRange) = this?.toIntOrNull() in range
-
-  private fun String?.isValidHeight(): Boolean {
-    return this != null && when {
-      endsWith("cm") -> length == 5 && substring(0, 3).isIntInRange(150..193)
-      endsWith("in") -> length == 4 && substring(0, 2).isIntInRange(59..76)
-      else -> false
-    }
-  }
-
-  private fun String?.isValidHairColor(): Boolean {
-    return this != null && length == 7 && startsWith('#') &&
-        substring(1).all { it in '0'..'9' || it in 'a'..'f' }
-  }
-
-  private fun String?.isValidEyeColor(): Boolean {
-    return this in listOf("amb", "blu", "brn", "gry", "grn", "hzl", "oth")
-  }
-
-  private fun String?.isValidPassportId() = this != null && length == 9 && all { it.isDigit() }
+  private fun String?.matches(pattern: String) = this?.matches(Regex(pattern)) ?: false
 }
