@@ -13,3 +13,20 @@ fun String.toCharMatrix(): Array<CharArray> {
   val lines = lines()
   return Array(lines.size) { index -> lines[index].toCharArray() }
 }
+
+fun parseIntoMaps(input: String): List<Map<String, String>> {
+  val maps = mutableListOf<Map<String, String>>()
+  val lines = input.split("\n\n")
+  for (line in lines) {
+    val map = mutableMapOf<String, String>()
+    val pairs = line.split(Regex("\\s"))
+    for (pair in pairs) {
+      val (key, value) = pair.split(":")
+      map[key] = value
+    }
+    maps += map
+  }
+  return maps
+}
+
+fun readMaps(path: String): List<Map<String, String>> = parseIntoMaps(File(path).readText())
