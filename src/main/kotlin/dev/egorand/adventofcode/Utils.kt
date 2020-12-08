@@ -36,3 +36,5 @@ fun readMaps(path: String): List<Map<String, String>> = parseIntoMaps(File(path)
 fun <T, U> Iterable<T>.zipAll(other: Iterable<U>): List<Pair<T, U>> {
   return flatMap { first -> other.map { second -> first to second } }
 }
+
+fun String.parse(regex: Regex): MatchResult.Destructured = regex.matchEntire(this)!!.destructured
