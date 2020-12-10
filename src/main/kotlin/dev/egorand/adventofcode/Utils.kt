@@ -6,6 +6,8 @@ fun readText(path: String): String = File(path).readText()
 
 fun readInts(path: String): List<Int> = readLines(path).map(String::toInt)
 
+fun readLongs(path: String): List<Long> = readLines(path).map(String::toLong)
+
 fun readLines(path: String): List<String> = File(path).readLines()
 
 fun readCharMatrix(path: String): Array<CharArray> =
@@ -38,3 +40,5 @@ fun <T, U> Iterable<T>.zipAll(other: Iterable<U>): List<Pair<T, U>> {
 }
 
 fun String.parse(regex: Regex): MatchResult.Destructured = regex.matchEntire(this)!!.destructured
+
+fun LongRange.toLongArray(): LongArray = toList().toLongArray()
