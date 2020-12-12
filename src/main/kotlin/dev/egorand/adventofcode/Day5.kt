@@ -70,14 +70,7 @@ package dev.egorand.adventofcode
  * What is the ID of your seat?
  */
 
-data class Seat(
-  val row: Int,
-  val seat: Int
-) {
-  val id = row * 8 + seat
-
-  constructor(seat: Pair<Int, Int>) : this(seat.first, seat.second)
-}
+val Seat.id get() = row * 8 + seat
 
 fun allSeats(): Set<Seat> = (0..127).zipAll(0..7).mapTo(mutableSetOf(), ::Seat)
 
