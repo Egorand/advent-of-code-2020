@@ -42,3 +42,11 @@ fun <T, U> Iterable<T>.zipAll(other: Iterable<U>): List<Pair<T, U>> {
 fun String.parse(regex: Regex): MatchResult.Destructured = regex.matchEntire(this)!!.destructured
 
 fun LongRange.toLongArray(): LongArray = toList().toLongArray()
+
+fun factorial(n: Int): Long {
+  var result = 1L
+  for (i in 1..n) {
+    result *= i
+  }
+  return result
+}
