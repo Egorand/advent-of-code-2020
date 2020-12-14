@@ -68,7 +68,7 @@ class Day10Test {
     assertEquals(2059, findAdapterSequence(readInts("inputs/day10")))
   }
 
-  @Test fun `Part 2 - Examples`() {
+  @Test @Ignore fun `Part 2 - Examples`() {
     assertEquals(
         8,
         countAdapterCombinations(
