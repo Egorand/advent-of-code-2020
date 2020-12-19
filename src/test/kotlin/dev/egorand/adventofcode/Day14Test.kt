@@ -4,8 +4,7 @@ import org.junit.Test
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
-@ExperimentalStdlibApi
-class Day14KtTest {
+class Day14Test {
   @Test fun `Part 1 - Examples`() {
     val decoderChip = DecoderChipV1().apply {
       initializeProgram("""
