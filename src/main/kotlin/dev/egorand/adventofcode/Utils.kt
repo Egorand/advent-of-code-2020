@@ -2,6 +2,8 @@ package dev.egorand.adventofcode
 
 import java.io.File
 
+// File reading utils
+
 fun readText(path: String): String = File(path).readText()
 
 fun readInts(path: String): List<Int> = readLines(path).map(String::toInt)
@@ -11,12 +13,22 @@ fun readLongs(path: String): List<Long> = readLines(path).map(String::toLong)
 fun readLines(path: String): List<String> = File(path).readLines()
 
 fun readCharMatrix(path: String): Array<CharArray> =
-  readLines(path).map { it.toCharArray() }.toTypedArray()
+    readLines(path).map { it.toCharArray() }.toTypedArray()
+
+fun readMaps(path: String): List<Map<String, String>> = parseIntoMaps(File(path).readText())
+
+// Converters
+
+fun LongRange.toLongArray(): LongArray = toList().toLongArray()
 
 fun String.toCharMatrix(): Array<CharArray> {
   val lines = lines()
   return Array(lines.size) { index -> lines[index].toCharArray() }
 }
+
+fun Char.asDigit(): Int = this - '0'
+
+// Parsers
 
 fun parseIntoMaps(input: String): List<Map<String, String>> {
   val maps = mutableListOf<Map<String, String>>()
@@ -33,20 +45,10 @@ fun parseIntoMaps(input: String): List<Map<String, String>> {
   return maps
 }
 
-fun readMaps(path: String): List<Map<String, String>> = parseIntoMaps(File(path).readText())
+fun String.parse(regex: Regex): MatchResult.Destructured = regex.matchEntire(this)!!.destructured
+
+// Collection operators
 
 fun <T, U> Iterable<T>.zipAll(other: Iterable<U>): List<Pair<T, U>> {
   return flatMap { first -> other.map { second -> first to second } }
-}
-
-fun String.parse(regex: Regex): MatchResult.Destructured = regex.matchEntire(this)!!.destructured
-
-fun LongRange.toLongArray(): LongArray = toList().toLongArray()
-
-fun factorial(n: Int): Long {
-  var result = 1L
-  for (i in 1..n) {
-    result *= i
-  }
-  return result
 }
