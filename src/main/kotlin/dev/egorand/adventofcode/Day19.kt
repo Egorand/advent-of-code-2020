@@ -170,20 +170,23 @@ package dev.egorand.adventofcode
  * After updating rules 8 and 11, how many messages completely match rule 0?
  */
 
+private val RULE_REGEX = Regex("(\\d+): (.+)")
 private val EQ_REGEX = Regex("\"(\\w)\"")
 private val SEQ_REGEX = Regex("(\\d+|\\s)+")
 private val OR_REGEX = Regex("(\\d+|\\s)+ \\| (\\d+|\\s)+")
 
-fun countMatchesForRule(ruleIndex: Int, configuration: String): Int {
-  fun String.toMatcher(matcherRegistry: MatcherRegistry): Matcher = when {
-    EQ_REGEX.matches(this) -> Matcher.Eq(this[1])
+fun countMatchesForRule(ruleId: Int, configuration: String): Int {
+  fun String.toMatcher(ruleId: Int, matcherRegistry: MatcherRegistry): Matcher = when {
+    EQ_REGEX.matches(this) -> Matcher.Eq(ruleId, this[1])
     SEQ_REGEX.matches(this) -> Matcher.Seq(
-      matcherIndices = split(' ').map(String::toInt),
+      ruleId,
+      matcherIds = split(' ').map(String::toInt),
       matcherRegistry,
     )
     OR_REGEX.matches(this) -> Matcher.Or(
-      firstIndices = substring(0, indexOf('|') - 1).split(' ').map(String::toInt),
-      secondIndices = substring(indexOf('|') + 2).split(' ').map(String::toInt),
+      ruleId,
+      firstIds = substring(0, indexOf('|') - 1).split(' ').map(String::toInt),
+      secondIds = substring(indexOf('|') + 2).split(' ').map(String::toInt),
       matcherRegistry,
     )
     else -> throw AssertionError("Could not find a matcher for [$this]")
@@ -193,74 +196,84 @@ fun countMatchesForRule(ruleIndex: Int, configuration: String): Int {
     val matcherRegistry = mutableMapOf<Int, Matcher>()
     for (line in configuration) {
       if (line.isEmpty()) return matcherRegistry
-      val ruleIndex = line.substring(0, line.indexOf(':')).toInt()
-      val rule = line.substring(line.indexOf(' ') + 1)
-      matcherRegistry[ruleIndex] = rule.toMatcher(matcherRegistry)
+      val (ruleId, rule) = line.parse(RULE_REGEX)
+      matcherRegistry[ruleId.toInt()] = rule.toMatcher(ruleId.toInt(), matcherRegistry)
     }
     return matcherRegistry
   }
 
-  var matches = 0
   val configuration = configuration.lines()
   val matcherRegistry = parseRules(configuration)
-  val matchedRule = matcherRegistry.getValue(ruleIndex)
-  for (i in matcherRegistry.size + 1 until configuration.size) {
-    val expression = configuration[i]
-    val consumed = matchedRule.match(expression, 0)
-    if (consumed == expression.length) {
-      matches += 1
-    }
-  }
-  return matches
+  val matchedRuleRegex = Regex(matcherRegistry.getValue(ruleId).toRegex())
+  return (matcherRegistry.size + 1 until configuration.size)
+    .map { index -> if (matchedRuleRegex.matches(configuration[index])) 1 else 0 }
+    .sum()
 }
 
 internal typealias MatcherRegistry = Map<Int, Matcher>
 
 internal sealed class Matcher {
-  /** @return number of consumed characters, -1 if no match */
-  abstract fun match(text: String, index: Int): Int
+  abstract val ruleId: Int
+  abstract fun toRegex(): String
 
-  class Eq(private val character: Char) : Matcher() {
-    override fun match(text: String, index: Int): Int {
-      return if (index < text.length && text[index] == character) 1 else -1
-    }
-
-    override fun toString(): String = "Eq($character)"
+  class Eq(
+    override val ruleId: Int,
+    private val character: Char,
+  ) : Matcher() {
+    override fun toRegex(): String = character.toString()
   }
 
   class Seq(
-    private val matcherIndices: List<Int>,
+    override val ruleId: Int,
+    private val matcherIds: List<Int>,
     private val matcherRegistry: MatcherRegistry,
   ) : Matcher() {
-    override fun match(text: String, index: Int): Int {
-      var totalConsumed = 0
-      var index = index
-      for (matcher in matcherIndices.map(matcherRegistry::getValue)) {
-        val consumed = matcher.match(text, index)
-        if (consumed == -1) return -1
-        totalConsumed += consumed
-        index += consumed
+    override fun toRegex(): String {
+      return if (ruleId in matcherIds) {
+        fixLoopingOrRule(matcherIds)
+      } else {
+        matcherIds.joinToString(prefix = "(", separator = "", postfix = ")") {
+          matcherRegistry.getValue(it).toRegex()
+        }
       }
-      return totalConsumed
     }
 
-    override fun toString(): String = "Seq($matcherIndices)"
+    private fun fixLoopingOrRule(loopingBranch: List<Int>): String {
+      // Just assume it's always an Or, although it might not be irl.
+      val rule = matcherRegistry.getValue(ruleId) as Or
+      val nonLoopingBranchRegexes =
+        (if (ruleId !in rule.firstIds) rule.firstIds else rule.secondIds)
+          .map { id -> matcherRegistry.getValue(id).toRegex() }
+      return buildString {
+        append('(')
+        for (id in loopingBranch) {
+          if (id != ruleId) {
+            append(matcherRegistry.getValue(id).toRegex())
+          } else {
+            append('(')
+            for (n in 1..10) {
+              for (regex in nonLoopingBranchRegexes) {
+                append("$regex{$n}")
+              }
+              if (n < 10) append('|')
+            }
+            append(')')
+          }
+        }
+        append(')')
+      }
+    }
   }
 
   class Or(
-    firstIndices: List<Int>,
-    secondIndices: List<Int>,
-    private val matcherRegistry: MatcherRegistry,
+    override val ruleId: Int,
+    internal val firstIds: List<Int>,
+    internal val secondIds: List<Int>,
+    matcherRegistry: MatcherRegistry,
   ) : Matcher() {
-    private val firstSeq = Seq(firstIndices, matcherRegistry)
-    private val secondSeq = Seq(secondIndices, matcherRegistry)
+    private val firstSeq = Seq(ruleId, firstIds, matcherRegistry)
+    private val secondSeq = Seq(ruleId, secondIds, matcherRegistry)
 
-    override fun match(text: String, index: Int): Int {
-      val firstConsumed = firstSeq.match(text, index)
-      if (firstConsumed != -1) return firstConsumed
-      return secondSeq.match(text, index)
-    }
-
-    override fun toString(): String = "Or($firstSeq | $secondSeq)"
+    override fun toRegex(): String = "(${firstSeq.toRegex()}|${secondSeq.toRegex()})"
   }
 }
