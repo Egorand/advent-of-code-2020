@@ -119,21 +119,24 @@ package dev.egorand.adventofcode
  * multiply their labels together?
  */
 
-fun mixCups(cups: String, moves: Int, padTo: Int = -1): String {
-  fun createCups(cups: String, padTo: Int): Cup {
+fun mixCups(cups: String, moves: Int, padTo: Int = -1): Cup {
+  fun createCups(cups: String, padTo: Int, map: MutableMap<Int, Cup>): Cup {
     if (cups.isEmpty()) throw AssertionError("cups is empty")
     val first = Cup(Character.getNumericValue(cups[0]))
+    map[first.value] = first
     var next = first
     var maxValue = Int.MIN_VALUE
     for (i in 1 until cups.length) {
       val nextValue = Character.getNumericValue(cups[i])
       if (nextValue > maxValue) maxValue = nextValue
       next.next = Cup(nextValue)
+      map[next.next.value] = next.next
       next = next.next
     }
     if (padTo > 0) {
       for (n in maxValue + 1..padTo) {
         next.next = Cup(n)
+        map[n] = next.next
         next = next.next
       }
     }
@@ -141,65 +144,51 @@ fun mixCups(cups: String, moves: Int, padTo: Int = -1): String {
     return first
   }
 
-  fun maxValue(current: Cup): Int {
-    var maxValue = Int.MIN_VALUE
-    var next = current
-    do {
-      if (next.value > maxValue) maxValue = next.value
-      next = next.next
-    } while (next != current)
-    return maxValue
-  }
-
-  fun findForValue(current: Cup, value: Int): Cup {
-    var next = current
-    while (next.value != value) {
-      next = next.next
-    }
-    return next
-  }
-
   fun findDestinationCup(
     current: Cup,
     pickedUp: List<Int>,
     maxValue: Int,
+    cupsMap: Map<Int, Cup>,
   ): Cup {
     var destinationValue = current.value - 1
     while (destinationValue in pickedUp || destinationValue <= 0) {
       destinationValue -= 1
       if (destinationValue <= 0) destinationValue = maxValue
     }
-    return findForValue(current, destinationValue)
+    return cupsMap.getValue(destinationValue)
   }
 
-  var current = createCups(cups, padTo)
+  val cupsMap = mutableMapOf<Int, Cup>()
+  var current = createCups(cups, padTo, cupsMap)
+  val maxValue = cupsMap.keys.maxOrNull() ?: throw AssertionError("No keys in cups map")
   for (i in 1..moves) {
-    println("move $i")
-    val pickedUp = current.removeNext(3)
-    val destinationCup = findDestinationCup(current, pickedUp, maxValue(current))
-    destinationCup.add(pickedUp)
+    val pickedUp = current.removeNext(3, cupsMap)
+    val destinationCup = findDestinationCup(current, pickedUp, maxValue, cupsMap)
+    destinationCup.add(pickedUp, cupsMap)
     current = current.next
   }
-  return current.toString()
+  return cupsMap.getValue(1)
 }
 
 class Cup(val value: Int) {
   lateinit var next: Cup
 
-  fun removeNext(count: Int): List<Int> = buildList {
+  fun removeNext(count: Int, cupsMap: MutableMap<Int, Cup>): List<Int> = buildList {
     var current = next
     for (i in 1..count) {
       add(current.value)
+      cupsMap.remove(current.value)
       current = current.next
     }
     next = current
   }
 
-  fun add(values: List<Int>) {
+  fun add(values: List<Int>, cupsMap: MutableMap<Int, Cup>) {
     val next = next
     var current = this
     for (value in values) {
       current.next = Cup(value)
+      cupsMap[value] = current.next
       current = current.next
     }
     current.next = next
