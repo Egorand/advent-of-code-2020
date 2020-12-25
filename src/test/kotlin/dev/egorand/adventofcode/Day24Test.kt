@@ -69,5 +69,29 @@ class Day24Test {
     )
     assertEquals(10, simulateLivingArt(tiles, days = 0).countBlackTiles())
     assertEquals(15, simulateLivingArt(tiles, days = 1).countBlackTiles())
+    assertEquals(12, simulateLivingArt(tiles, days = 2).countBlackTiles())
+    assertEquals(25, simulateLivingArt(tiles, days = 3).countBlackTiles())
+    assertEquals(14, simulateLivingArt(tiles, days = 4).countBlackTiles())
+    assertEquals(23, simulateLivingArt(tiles, days = 5).countBlackTiles())
+    assertEquals(28, simulateLivingArt(tiles, days = 6).countBlackTiles())
+    assertEquals(41, simulateLivingArt(tiles, days = 7).countBlackTiles())
+    assertEquals(37, simulateLivingArt(tiles, days = 8).countBlackTiles())
+    assertEquals(49, simulateLivingArt(tiles, days = 9).countBlackTiles())
+    assertEquals(37, simulateLivingArt(tiles, days = 10).countBlackTiles())
+
+    assertEquals(132, simulateLivingArt(tiles, days = 20).countBlackTiles())
+    assertEquals(259, simulateLivingArt(tiles, days = 30).countBlackTiles())
+    assertEquals(406, simulateLivingArt(tiles, days = 40).countBlackTiles())
+    assertEquals(566, simulateLivingArt(tiles, days = 50).countBlackTiles())
+    assertEquals(788, simulateLivingArt(tiles, days = 60).countBlackTiles())
+    assertEquals(1106, simulateLivingArt(tiles, days = 70).countBlackTiles())
+    assertEquals(1373, simulateLivingArt(tiles, days = 80).countBlackTiles())
+    assertEquals(1844, simulateLivingArt(tiles, days = 90).countBlackTiles())
+    assertEquals(2208, simulateLivingArt(tiles, days = 100).countBlackTiles())
+  }
+
+  @Test fun `Part 2 - Input`() {
+    val tiles = flipTiles(readText("inputs/day24"))
+    assertEquals(3733, simulateLivingArt(tiles, days = 100).countBlackTiles())
   }
 }

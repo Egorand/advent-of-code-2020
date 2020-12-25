@@ -146,19 +146,32 @@ private fun Tile.next(direction: String): Tile = when (direction) {
 fun simulateLivingArt(initialConfiguration: Map<Tile, Color>, days: Int): Map<Tile, Color> {
   fun Tile.adjacentTiles(): Set<Tile> = DIRECTIONS.mapTo(mutableSetOf(), this::next)
 
-  val tiles = initialConfiguration.toMutableMap().withDefault { WHITE }
-  for (day in 1..days) {
-    val tilesToFlip = mutableSetOf<Tile>()
-    for ((tile, color) in tiles) {
-      val blackAdjacentTiles = tile.adjacentTiles().map(tiles::getValue).count { it == BLACK }
-      if (color == BLACK && (blackAdjacentTiles == 0 || blackAdjacentTiles > 2)) {
-        tilesToFlip += tile
-      } else if (color == WHITE && blackAdjacentTiles == 2) {
-        tilesToFlip += tile
+  fun backfillWhiteTiles(tiles: MutableMap<Tile, Color>) {
+    // Copy black tiles into a new collection to avoid concurrent modification down the line.
+    val blackTiles = tiles.mapNotNull { (tile, color) ->
+      if (color == BLACK) tile else null
+    }
+    for (tile in blackTiles) {
+      for (adjacentTile in tile.adjacentTiles()) {
+        if (adjacentTile !in tiles) {
+          tiles[adjacentTile] = WHITE
+        }
       }
     }
-    for (tile in tilesToFlip) {
-      val color = tiles.getValue(tile)
+  }
+
+  val tiles = initialConfiguration.toMutableMap().withDefault { WHITE }
+  for (day in 1..days) {
+    backfillWhiteTiles(tiles)
+    val tilesToFlip = mutableMapOf<Tile, Color>()
+    for ((tile, color) in tiles) {
+      val blackAdjacentTiles = tile.adjacentTiles().map(tiles::getValue).count { it == BLACK }
+      if ((color == BLACK && (blackAdjacentTiles == 0 || blackAdjacentTiles > 2)) ||
+          (color == WHITE && blackAdjacentTiles == 2)) {
+        tilesToFlip += tile to color
+      }
+    }
+    for ((tile, color) in tilesToFlip) {
       tiles[tile] = color.flip()
     }
   }
