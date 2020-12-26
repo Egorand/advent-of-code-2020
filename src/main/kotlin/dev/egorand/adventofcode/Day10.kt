@@ -1,6 +1,6 @@
 package dev.egorand.adventofcode
 
-import kotlin.math.min
+import kotlin.math.max
 
 /**
  * --- Day 10: Adapter Array ---
@@ -171,17 +171,16 @@ fun findAdapterSequence(joltages: List<Int>): Int {
 
 fun countAdapterCombinations(joltages: List<Int>): Long {
   val joltages = listOf(0) + joltages.sorted()
-  var combinations = 0L
-  for (fromIndex in 0 until joltages.size - 1) {
-    var nextStepOptions = 0L
-    for (i in fromIndex + 1..min(fromIndex + 3, joltages.size - 1)) {
-      if (joltages[i] - joltages[fromIndex] <= 3) {
-        nextStepOptions += 1
+  val combinations = LongArray(joltages.size)
+  combinations[0] = 1
+  for (targetIndex in 1 until joltages.size) {
+    for (sourceIndex in targetIndex - 1 downTo max(0, targetIndex - 3)) {
+      if (joltages[targetIndex] - joltages[sourceIndex] <= 3) {
+        combinations[targetIndex] += combinations[sourceIndex]
       } else {
         break
       }
     }
-    combinations += nextStepOptions - 1
   }
-  return combinations
+  return combinations[joltages.size - 1]
 }

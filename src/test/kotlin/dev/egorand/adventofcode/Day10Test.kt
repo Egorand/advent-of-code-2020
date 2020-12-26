@@ -1,6 +1,5 @@
 package dev.egorand.adventofcode
 
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -68,7 +67,7 @@ class Day10Test {
     assertEquals(2059, findAdapterSequence(readInts("inputs/day10")))
   }
 
-  @Test @Ignore fun `Part 2 - Examples`() {
+  @Test fun `Part 2 - Examples`() {
     assertEquals(
         8,
         countAdapterCombinations(
@@ -127,7 +126,21 @@ class Day10Test {
     )
   }
 
-  @Test @Ignore fun `Part 2 - Input`() {
-    assertEquals(-1, countAdapterCombinations(readInts("inputs/day10")))
+  @Test fun `Part 2 - Input`() {
+    assertEquals(86812553324672, countAdapterCombinations(readInts("inputs/day10")))
   }
+
+  //    0 1 4 5 6 7 10 11 12 15 16 19
+  //  0 0 1 0 0 0 0  0  0  0  0  0  0
+  //  1 1 1 1 0 0 0  0  0  0  0  0  0
+  //  4 0 0 0 0 0 0  0  0  0  0  0  0
+  //  5 0 0 0 0 0 0  0  0  0  0  0  0
+  //  6 0 0 0 0 0 0  0  0  0  0  0  0
+  //  7 0 0 0 0 0 0  0  0  0  0  0  0
+  // 10 0 0 0 0 0 0  0  0  0  0  0  0
+  // 11 0 0 0 0 0 0  0  0  0  0  0  0
+  // 12 0 0 0 0 0 0  0  0  0  0  0  0
+  // 15 0 0 0 0 0 0  0  0  0  0  0  0
+  // 16 0 0 0 0 0 0  0  0  0  0  0  0
+  // 19 0 0 0 0 0 0  0  0  0  0  0  0
 }
